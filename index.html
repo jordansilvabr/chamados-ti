@@ -267,23 +267,14 @@
       </div>
     </div>
 
-    <div class="row2">
-      <div>
-        <label class="required">Prioridade</label>
-        <select id="cx-prioridade">
-          <option value="9">Crítico</option>
-          <option value="10">Urgente</option>
-          <option value="12" selected>Médio</option>
-          <option value="11">Baixo</option>
-        </select>
-      </div>
-      <div>
-        <label class="required">Responsável técnico</label>
-        <select id="cx-assignee">
-          <option value="9">Vitor</option>
-          <option value="7">Daniela</option>
-        </select>
-      </div>
+    <div>
+      <label class="required">Prioridade</label>
+      <select id="cx-prioridade">
+        <option value="9">Crítico</option>
+        <option value="10">Urgente</option>
+        <option value="12" selected>Médio</option>
+        <option value="11">Baixo</option>
+      </select>
     </div>
 
     <!-- Título -->
@@ -612,7 +603,6 @@ async function enviarCX(){
       ticket_category_id: parseInt(document.getElementById('cx-area').value),
       start_date:         _hoje(),
       due_date:           _prazo(24),
-      assignee_id:        parseInt(document.getElementById('cx-assignee').value),
       ticket_label_ids:   [parseInt(document.getElementById('cx-prioridade').value)],
       ...(links.length ? { ticket_links_attributes: links } : {}),
     }
@@ -657,7 +647,6 @@ function novoForm(){
   });
   document.getElementById('cx-area').value='8';
   document.getElementById('cx-prioridade').value='12';
-  document.getElementById('cx-assignee').value='9';
   document.getElementById('cx-portal').value='';
   document.getElementById('btn-enviar-cx').disabled=false;
   document.getElementById('btn-enviar-cx').textContent='Abrir Chamado';
