@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abrir Chamado — BluePay TI</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f1f5f9;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 24px 16px 48px;
+  }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 4px 24px rgba(0,0,0,.08);
+    width: 100%;
+    max-width: 560px;
+    overflow: hidden;
+  }
+  .card-header {
+    background: #1e293b;
+    padding: 22px 28px;
+    color: #fff;
+  }
+  .card-header h1 { font-size: 18px; font-weight: 700; margin-bottom: 3px; }
+  .card-header p  { font-size: 13px; color: #94a3b8; }
+
+  /* Setor toggle */
+  .setor-wrap { padding: 20px 28px 0; }
+  .setor-toggle { display: flex; border-radius: 10px; overflow: hidden; border: 1px solid #e2e8f0; margin-top: 6px; }
+  .setor-btn {
+    flex: 1; padding: 11px 0; font-size: 13px; font-weight: 600;
+    cursor: pointer; border: none; background: #f8fafc; color: #64748b;
+    transition: background .15s, color .15s; font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .setor-btn.active-infra  { background: #1e40af; color: #fff; }
+  .setor-btn.active-cx     { background: #7c3aed; color: #fff; }
+  .setor-btn:not(.active-infra):not(.active-cx):hover { background: #f1f5f9; }
+
+  /* Form body */
+  .form-section { padding: 24px 28px; display: flex; flex-direction: column; gap: 16px; }
+
+  label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 5px; }
+  label.required::after { content: ' *'; color: #ef4444; }
+  input, select, textarea {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 14px; color: #1e293b; background: #f8fafc;
+    transition: border-color .15s, box-shadow .15s; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus {
+    outline: none; border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99,102,241,.12); background: #fff;
+  }
+  textarea { resize: vertical; min-height: 90px; }
+
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width:480px){ .row2 { grid-template-columns: 1fr; } }
+
+  /* Section divider */
+  .section-label {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .06em; color: #94a3b8;
+    border-bottom: 1px solid #f1f5f9; padding-bottom: 8px; margin-bottom: 0;
+  }
+
+  /* Info box */
+  .info-box {
+    background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; color: #64748b;
+    display: flex; gap: 8px; align-items: flex-start;
+  }
+  .info-box strong { color: #1e293b; }
+
+  /* SLA */
+  .sla-box {
+    background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; color: #1e40af;
+  }
+
+  /* Btn */
+  .btn {
+    width: 100%; padding: 12px; border: none; border-radius: 8px;
+    font-size: 15px; font-weight: 600; cursor: pointer; transition: background .15s;
+    color: #fff; background: #6366f1;
+  }
+  .btn:hover { background: #4f46e5; }
+  .btn:disabled { background: #94a3b8; cursor: not-allowed; }
+  .btn-infra { background: #2563eb; }
+  .btn-infra:hover { background: #1d4ed8; }
+
+  /* Dropzone */
+  .dz {
+    border: 2px dashed #e2e8f0; border-radius: 8px; padding: 18px;
+    text-align: center; cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: #f8fafc; color: #64748b; font-size: 13px;
+  }
+  .dz.over { border-color: #6366f1; background: #eef2ff; }
+  .dz-icon { font-size: 26px; margin-bottom: 5px; }
+
+  /* Erro */
+  .erro { color: #ef4444; font-size: 12px; margin-top: 4px; display: none; }
+
+  /* Sucesso */
+  .sucesso {
+    display: none; flex-direction: column; align-items: center;
+    gap: 12px; padding: 40px 28px; text-align: center;
+  }
+  .sucesso .icon  { font-size: 48px; }
+  .sucesso h2     { font-size: 20px; font-weight: 700; color: #1e293b; }
+  .sucesso p      { font-size: 14px; color: #64748b; line-height: 1.6; }
+  .sucesso .num   { font-size: 32px; font-weight: 800; color: #6366f1; }
+  .sucesso .sla   { font-size: 13px; color: #64748b; margin-top: 4px; }
+  .btn-novo { background: #6366f1; width: auto; padding: 10px 28px; margin-top: 8px; }
+  .btn-novo:hover { background: #4f46e5; }
+
+  /* datetime auto */
+  .dt-auto {
+    background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 10px 12px; font-size: 14px; color: #64748b; font-family: inherit;
+    display: flex; align-items: center; gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- Header -->
+  <div class="card-header">
+    <h1>Abrir Chamado</h1>
+    <p>Selecione o tipo e preencha os dados do chamado.</p>
+  </div>
+
+  <!-- Setor toggle (sempre visível) -->
+  <div class="setor-wrap" id="setor-wrap">
+    <label>Tipo de chamado</label>
+    <div class="setor-toggle">
+      <button type="button" class="setor-btn active-infra" id="btn-infra" onclick="selecionarSetor('Infra')">
+        🖥️ Infraestrutura
+      </button>
+      <button type="button" class="setor-btn" id="btn-cx" onclick="selecionarSetor('Produtos')">
+        💼 CX / Financeiro
+      </button>
+    </div>
+    <input type="hidden" id="f-setor" value="Infra">
+  </div>
+
+  <!-- ══ FORMULÁRIO INFRA ══ -->
+  <div id="form-infra" class="form-section">
+
+    <div>
+      <label class="required">Seu nome</label>
+      <input id="f-nome" type="text" placeholder="Ex: João Silva" maxlength="150">
+      <div class="erro" id="err-nome">Campo obrigatório</div>
+    </div>
+
+    <div>
+      <label>Seu e-mail</label>
+      <input id="f-email" type="email" placeholder="joao@bluepaysolutions.com.br" maxlength="150">
+    </div>
+
+    <div class="row2">
+      <div>
+        <label class="required">Categoria</label>
+        <select id="f-categoria">
+          <option value="1">Feature</option>
+          <option value="2" selected>Bug</option>
+          <option value="3">Migrations</option>
+          <option value="4">Documentation</option>
+        </select>
+      </div>
+      <div>
+        <label class="required">Tipo</label>
+        <select id="f-ticket-type">
+          <option value="bug">Bug</option>
+          <option value="feature">Feature</option>
+          <option value="improvement">Melhoria</option>
+          <option value="support">Suporte</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label class="required">Issue type</label>
+        <select id="f-issue-type">
+          <option value="impedimento">Impedimento</option>
+          <option value="duvida">Dúvida</option>
+          <option value="melhoria">Melhoria</option>
+        </select>
+      </div>
+      <div>
+        <label class="required">Prioridade</label>
+        <select id="f-prioridade" onchange="atualizarPrio()">
+          <option value="baixo">Baixo — 24h</option>
+          <option value="medio" selected>Médio — 8h</option>
+          <option value="alto">Alto — 4h</option>
+          <option value="critico">Crítico — 2h</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label>Patrimônio do equipamento</label>
+      <input id="f-patrimonio" type="text" placeholder="Ex: 0083 (opcional)" maxlength="50">
+    </div>
+
+    <div>
+      <label class="required">Título do problema</label>
+      <input id="f-titulo" type="text" placeholder="Resumo em uma linha" maxlength="200">
+      <div class="erro" id="err-titulo">Campo obrigatório</div>
+    </div>
+
+    <div>
+      <label class="required">Descrição detalhada</label>
+      <textarea id="f-descricao" placeholder="Descreva o problema com o máximo de detalhes: o que aconteceu, quando começou, mensagens de erro, etc."></textarea>
+      <div class="erro" id="err-descricao">Campo obrigatório</div>
+    </div>
+
+    <div class="sla-box">
+      ⏱ SLA para prioridade <strong id="sla-prio-label">Médio</strong>: atendimento em até <strong id="sla-horas-label">8 horas</strong>.
+    </div>
+
+    <div>
+      <label>Anexar arquivo <span style="color:#94a3b8;font-weight:400">(imagem ou PDF, máx. 10 MB)</span></label>
+      <div class="dz" id="dz-infra" onclick="document.getElementById('f-arquivo').click()">
+        <div class="dz-icon">📎</div>
+        <div id="dz-infra-label">Clique ou arraste um arquivo aqui</div>
+        <div style="font-size:11px;margin-top:3px;color:#94a3b8">PNG, JPG, WEBP ou PDF</div>
+      </div>
+      <input id="f-arquivo" type="file" accept="image/*,.pdf" style="display:none" onchange="onArquivoSelecionado('infra')">
+      <div id="preview-wrap-infra" style="display:none;margin-top:10px;position:relative">
+        <img id="preview-img-infra" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid #e2e8f0;display:none">
+        <div id="preview-pdf-infra" style="display:none;background:#f1f5f9;border-radius:6px;padding:10px 14px;font-size:13px;color:#374151;border:1px solid #e2e8f0"></div>
+        <button onclick="removerArquivo('infra')" style="position:absolute;top:6px;right:6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+
+    <button class="btn btn-infra" onclick="enviar()" id="btn-enviar-infra">Abrir Chamado</button>
+  </div>
+
+  <!-- ══ FORMULÁRIO CX / FINANCEIRO ══ -->
+  <div id="form-cx" class="form-section" style="display:none">
+
+    <!-- Área e responsável -->
+    <div class="row2">
+      <div>
+        <label class="required">Categoria / Área</label>
+        <select id="cx-area">
+          <option value="8">Produtos</option>
+          <option value="9">CX</option>
+          <option value="10">Pré-vendas</option>
+        </select>
+      </div>
+      <div>
+        <label class="required">Responsável pela abertura</label>
+        <input id="cx-responsavel" type="text" placeholder="Seu nome completo" maxlength="150">
+        <div class="erro" id="err-cx-responsavel">Campo obrigatório</div>
+      </div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label class="required">Prioridade</label>
+        <select id="cx-prioridade">
+          <option value="9">Crítico</option>
+          <option value="10">Urgente</option>
+          <option value="12" selected>Médio</option>
+          <option value="11">Baixo</option>
+        </select>
+      </div>
+      <div>
+        <label class="required">Responsável técnico</label>
+        <select id="cx-assignee">
+          <option value="9">Vitor</option>
+          <option value="7">Daniela</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Título -->
+    <div>
+      <label class="required">Título do chamado</label>
+      <input id="cx-titulo" type="text" placeholder="Resumo do problema em uma linha" maxlength="200">
+      <div class="erro" id="err-cx-titulo">Campo obrigatório</div>
+    </div>
+
+    <!-- Data/hora automática -->
+    <div>
+      <label>Data e hora da abertura</label>
+      <div class="dt-auto">📅 <span id="cx-datetime">—</span></div>
+    </div>
+
+    <!-- Identificador Bluepay -->
+    <div>
+      <div class="section-label">Identificador Bluepay</div>
+    </div>
+
+    <div>
+      <label class="required">Nome do cliente ou premiado</label>
+      <input id="cx-cliente-nome" type="text" placeholder="Nome completo" maxlength="200">
+      <div class="erro" id="err-cx-cliente-nome">Campo obrigatório</div>
+    </div>
+
+    <div class="row2">
+      <div>
+        <label>CPF ou CNPJ</label>
+        <input id="cx-documento" type="text" placeholder="000.000.000-00" maxlength="20">
+      </div>
+      <div>
+        <label>Portal</label>
+        <select id="cx-portal">
+          <option value="">Selecione</option>
+          <option value="Portal Bluepay">Portal Bluepay</option>
+          <option value="Portal Multi (Corban)">Portal Multi (Corban)</option>
+          <option value="Portal 24x7">Portal 24x7</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label>Link do portal ou conta</label>
+      <input id="cx-cliente-link" type="url" placeholder="https://..." maxlength="500">
+    </div>
+
+    <!-- Detalhamento -->
+    <div>
+      <div class="section-label" style="margin-bottom:16px">Detalhamento do incidente</div>
+    </div>
+
+    <div>
+      <label class="required">Descrição do incidente</label>
+      <textarea id="cx-descricao" style="min-height:110px" placeholder="Descreva o incidente em detalhes: o que ocorreu, quando, qual o impacto, passos para reproduzir, etc."></textarea>
+      <div class="erro" id="err-cx-descricao">Campo obrigatório</div>
+    </div>
+
+    <!-- Anexos -->
+    <div>
+      <div class="section-label" style="margin-bottom:16px">Anexos</div>
+    </div>
+
+    <div>
+      <label>Arquivos <span style="color:#94a3b8;font-weight:400">(fotos, prints, vídeos — máx. 10 MB)</span></label>
+      <div class="dz" id="dz-cx" onclick="document.getElementById('cx-arquivo').click()">
+        <div class="dz-icon">📎</div>
+        <div id="dz-cx-label">Clique ou arraste arquivos aqui</div>
+        <div style="font-size:11px;margin-top:3px;color:#94a3b8">PNG, JPG, WEBP, PDF, MP4, MOV</div>
+      </div>
+      <input id="cx-arquivo" type="file" accept="image/*,.pdf,video/*" style="display:none" onchange="onArquivoSelecionado('cx')">
+      <div id="preview-wrap-cx" style="display:none;margin-top:10px;position:relative">
+        <img id="preview-img-cx" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid #e2e8f0;display:none">
+        <div id="preview-pdf-cx" style="display:none;background:#f1f5f9;border-radius:6px;padding:10px 14px;font-size:13px;color:#374151;border:1px solid #e2e8f0"></div>
+        <button onclick="removerArquivo('cx')" style="position:absolute;top:6px;right:6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>
+
+    <div>
+      <label>Links relacionados <span style="color:#94a3b8;font-weight:400">(um por linha)</span></label>
+      <textarea id="cx-links" style="min-height:70px" placeholder="https://link1.com&#10;https://link2.com"></textarea>
+    </div>
+
+    <button class="btn" onclick="enviarCX()" id="btn-enviar-cx">Abrir Chamado</button>
+  </div>
+
+  <!-- ══ SUCESSO ══ -->
+  <div id="sucesso-body" class="sucesso">
+    <div class="icon">✅</div>
+    <h2>Chamado aberto!</h2>
+    <p>Seu chamado foi registrado e a equipe já foi notificada.</p>
+    <div class="num" id="suc-num">#—</div>
+    <div class="sla" id="suc-sla"></div>
+    <button class="btn btn-novo" onclick="novoForm()">Abrir outro chamado</button>
+  </div>
+
+</div>
+
+<script>
+// ── Config API externa ──
+const _API_URL   = 'http://miky2mzxx76sx318uf091u9s.34.95.230.116.sslip.io/v1/tickets';
+const _API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkOTg3ODNhYS1hZDVkLTQ4N2MtOWFkMi01M2U5YTMzNWM1MTMiLCJleHAiOjE3ODI4NDc2ODJ9.6s4O9GlqBdZSRthO5QGNBegb1iqjU1ozMJSwNpMcLYE';
+
+function _hoje(){ return new Date().toISOString().split('T')[0]; }
+function _prazo(horas){
+  return new Date(Date.now() + horas*3600000).toISOString().split('T')[0];
+}
+
+// ── Setor ──
+function selecionarSetor(setor){
+  document.getElementById('f-setor').value = setor;
+  document.getElementById('btn-infra').className = 'setor-btn' + (setor==='Infra'    ? ' active-infra' : '');
+  document.getElementById('btn-cx').className    = 'setor-btn' + (setor==='Produtos' ? ' active-cx'    : '');
+  document.getElementById('form-infra').style.display = setor==='Infra'    ? 'flex' : 'none';
+  document.getElementById('form-cx').style.display    = setor==='Produtos' ? 'flex' : 'none';
+}
+
+// ── Data/hora automática CX ──
+function _atualizarDatetime(){
+  const el = document.getElementById('cx-datetime');
+  if(!el) return;
+  const now = new Date();
+  const d = now.toLocaleDateString('pt-BR');
+  const h = now.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  el.textContent = `${d} às ${h}`;
+}
+_atualizarDatetime();
+setInterval(_atualizarDatetime, 30000);
+
+// ── SLA Infra ──
+const _PRIO = {
+  baixo:{label:'Baixo',horas:'24'}, medio:{label:'Médio',horas:'8'},
+  alto:{label:'Alto',horas:'4'},    critico:{label:'Crítico',horas:'2'},
+};
+function atualizarPrio(){
+  const p = _PRIO[document.getElementById('f-prioridade').value] || _PRIO.medio;
+  document.getElementById('sla-prio-label').textContent  = p.label;
+  document.getElementById('sla-horas-label').textContent = p.horas + ' horas';
+}
+
+// ── Validação Infra ──
+function validar(){
+  let ok = true;
+  ['nome','titulo','descricao'].forEach(id=>{
+    const el = document.getElementById('f-'+id);
+    const err = document.getElementById('err-'+id);
+    if(!el.value.trim()){ err.style.display='block'; ok=false; }
+    else err.style.display='none';
+  });
+  return ok;
+}
+
+// ── Validação CX ──
+function validarCX(){
+  let ok = true;
+  const campos = [
+    ['cx-responsavel','err-cx-responsavel'],
+    ['cx-titulo',     'err-cx-titulo'],
+    ['cx-cliente-nome','err-cx-cliente-nome'],
+    ['cx-descricao',  'err-cx-descricao'],
+  ];
+  campos.forEach(([id, errId])=>{
+    const el = document.getElementById(id);
+    const err = document.getElementById(errId);
+    if(!el.value.trim()){ err.style.display='block'; ok=false; }
+    else err.style.display='none';
+  });
+  return ok;
+}
+
+// ── Dropzone ──
+function _setupDZ(dzId, inputId, ctx){
+  const dz = document.getElementById(dzId);
+  dz.addEventListener('dragover',  e=>{ e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', ()=> dz.classList.remove('over'));
+  dz.addEventListener('drop', e=>{
+    e.preventDefault(); dz.classList.remove('over');
+    const f = e.dataTransfer.files[0];
+    if(f){ document.getElementById(inputId).files = e.dataTransfer.files; onArquivoSelecionado(ctx); }
+  });
+}
+_setupDZ('dz-infra','f-arquivo','infra');
+_setupDZ('dz-cx','cx-arquivo','cx');
+
+function onArquivoSelecionado(ctx){
+  const inputId = ctx==='infra' ? 'f-arquivo' : 'cx-arquivo';
+  const labelId = 'dz-'+ctx+'-label';
+  const wrapId  = 'preview-wrap-'+ctx;
+  const imgId   = 'preview-img-'+ctx;
+  const pdfId   = 'preview-pdf-'+ctx;
+
+  const f = document.getElementById(inputId).files[0];
+  if(!f) return;
+  document.getElementById('dz-'+ctx).querySelector('.dz-icon').textContent = '✅';
+  document.getElementById(labelId).textContent = f.name;
+  document.getElementById(wrapId).style.display = 'block';
+  const img = document.getElementById(imgId);
+  const pdf = document.getElementById(pdfId);
+  if(f.type.startsWith('image/')){
+    img.style.display='block'; pdf.style.display='none';
+    img.src = URL.createObjectURL(f);
+  } else {
+    img.style.display='none'; pdf.style.display='block';
+    pdf.textContent = '📄 ' + f.name + ' (' + (f.size/1024).toFixed(0) + ' KB)';
+  }
+}
+
+function removerArquivo(ctx){
+  const inputId = ctx==='infra' ? 'f-arquivo' : 'cx-arquivo';
+  document.getElementById(inputId).value = '';
+  document.getElementById('preview-wrap-'+ctx).style.display='none';
+  document.getElementById('preview-img-'+ctx).src='';
+  document.getElementById('dz-'+ctx).querySelector('.dz-icon').textContent='📎';
+  document.getElementById('dz-'+ctx+'-label').textContent='Clique ou arraste um arquivo aqui';
+}
+
+// ── Upload de anexo ──
+async function _uploadAnexo(chamadoId, inputId){
+  const input = document.getElementById(inputId);
+  if(!input.files.length) return;
+  const fd = new FormData();
+  fd.append('arquivo', input.files[0]);
+  await fetch('/api/chamados/'+chamadoId+'/anexos', {method:'POST', body:fd});
+}
+
+// ── Mostrar sucesso ──
+function _mostrarSucesso(id, sla_prazo){
+  document.getElementById('suc-num').textContent = '#' + id;
+  if(sla_prazo){
+    const s = sla_prazo.includes('Z') || sla_prazo.includes('+') ? sla_prazo : sla_prazo+'Z';
+    document.getElementById('suc-sla').textContent = 'Prazo de atendimento: ' + new Date(s).toLocaleString('pt-BR');
+  }
+  document.getElementById('setor-wrap').style.display  = 'none';
+  document.getElementById('form-infra').style.display  = 'none';
+  document.getElementById('form-cx').style.display     = 'none';
+  document.getElementById('sucesso-body').style.display = 'flex';
+}
+
+// ── Enviar Infra → API externa (Tecnologia, area_id=1) ──
+async function enviar(){
+  if(!validar()) return;
+  const btn = document.getElementById('btn-enviar-infra');
+  btn.disabled=true; btn.textContent='Enviando...';
+
+  const _PRIO_API = { baixo:{api:'low',horas:24}, medio:{api:'medium',horas:8}, alto:{api:'high',horas:4}, critico:{api:'critical',horas:2} };
+  const prioKey = document.getElementById('f-prioridade').value;
+  const prio    = _PRIO_API[prioKey] || _PRIO_API.medio;
+  const patrimonio = document.getElementById('f-patrimonio').value.trim();
+  const email      = document.getElementById('f-email').value.trim();
+  const nome       = document.getElementById('f-nome').value.trim();
+
+  let desc = `<p>${document.getElementById('f-descricao').value.trim()}</p>`;
+  if(nome)       desc += `<p><strong>Solicitante:</strong> ${nome}</p>`;
+  if(email)      desc += `<p><strong>E-mail:</strong> ${email}</p>`;
+  if(patrimonio) desc += `<p><strong>Patrimônio:</strong> ${patrimonio}</p>`;
+
+  const links = [];
+  const arquivo = document.getElementById('f-arquivo').files[0];
+  if(arquivo) links.push({ name: arquivo.name, url: '', position: 0 });
+
+  const payload = {
+    ticket: {
+      title:               document.getElementById('f-titulo').value.trim(),
+      description:         desc,
+      priority:            prio.api,
+      ticket_type:         document.getElementById('f-ticket-type').value,
+      issue_type:          document.getElementById('f-issue-type').value,
+      requester_area_id:   1,
+      assignee_area_id:    1,
+      ticket_category_id:  parseInt(document.getElementById('f-categoria').value),
+      start_date:          _hoje(),
+      due_date:            _prazo(prio.horas),
+      ...(links.length ? { ticket_links_attributes: links } : {}),
+    }
+  };
+
+  try {
+    const res = await fetch(_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _API_TOKEN },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok){ const t=await res.text(); throw new Error(t); }
+    const data = await res.json();
+    const ticketId = data.ticket?.id || data.id || '—';
+    _mostrarSucesso(ticketId, null);
+  } catch(e){
+    alert('Erro ao enviar: ' + e.message);
+    btn.disabled=false; btn.textContent='Abrir Chamado';
+  }
+}
+
+// ── Enviar Produtos/CX → API externa (Chamados Internos, area_id=6) ──
+async function enviarCX(){
+  if(!validarCX()) return;
+  const btn = document.getElementById('btn-enviar-cx');
+  btn.disabled=true; btn.textContent='Enviando...';
+
+  const clienteNome = document.getElementById('cx-cliente-nome').value.trim();
+  const clienteDoc  = document.getElementById('cx-documento').value.trim();
+  const clienteLink = document.getElementById('cx-cliente-link').value.trim();
+  const portal      = document.getElementById('cx-portal').value;
+  const linksRel    = document.getElementById('cx-links').value.trim();
+  const nome        = document.getElementById('cx-responsavel').value.trim();
+
+  let desc = `<p>${document.getElementById('cx-descricao').value.trim()}</p>`;
+  if(nome)        desc += `<p><strong>Solicitante:</strong> ${nome}</p>`;
+  if(clienteNome) desc += `<p><strong>Cliente/Premiado:</strong> ${clienteNome}</p>`;
+  if(clienteDoc)  desc += `<p><strong>CPF/CNPJ:</strong> ${clienteDoc}</p>`;
+  if(portal)      desc += `<p><strong>Portal:</strong> ${portal}</p>`;
+  if(clienteLink) desc += `<p><strong>Link do portal:</strong> ${clienteLink}</p>`;
+
+  const links = [];
+  if(linksRel){
+    linksRel.split('\n').filter(l=>l.trim()).forEach((url,i)=>{
+      links.push({ name: 'Link ' + (i+1), url: url.trim(), position: i });
+    });
+  }
+
+  const payload = {
+    ticket: {
+      title:              document.getElementById('cx-titulo').value.trim(),
+      description:        desc,
+      requester_area_id:  6,
+      assignee_area_id:   6,
+      ticket_category_id: parseInt(document.getElementById('cx-area').value),
+      start_date:         _hoje(),
+      due_date:           _prazo(24),
+      assignee_id:        parseInt(document.getElementById('cx-assignee').value),
+      ticket_label_ids:   [parseInt(document.getElementById('cx-prioridade').value)],
+      ...(links.length ? { ticket_links_attributes: links } : {}),
+    }
+  };
+
+  try {
+    const res = await fetch(_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _API_TOKEN },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok){ const t=await res.text(); throw new Error(t); }
+    const data = await res.json();
+    const ticketId = data.ticket?.id || data.id || '—';
+    _mostrarSucesso(ticketId, null);
+  } catch(e){
+    alert('Erro ao enviar: ' + e.message);
+    btn.disabled=false; btn.textContent='Abrir Chamado';
+  }
+}
+
+// ── Novo chamado ──
+function novoForm(){
+  document.getElementById('sucesso-body').style.display='none';
+  document.getElementById('setor-wrap').style.display='';
+  selecionarSetor('Infra');
+  // Reset Infra
+  ['f-nome','f-email','f-titulo','f-descricao','f-patrimonio'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('f-prioridade').value='medio';
+  document.getElementById('f-categoria').value='2';
+  document.getElementById('f-ticket-type').value='bug';
+  document.getElementById('f-issue-type').value='impedimento';
+  document.getElementById('btn-enviar-infra').disabled=false;
+  document.getElementById('btn-enviar-infra').textContent='Abrir Chamado';
+  removerArquivo('infra');
+  atualizarPrio();
+  // Reset CX
+  ['cx-responsavel','cx-titulo','cx-descricao','cx-cliente-nome','cx-documento','cx-cliente-link','cx-links'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('cx-area').value='8';
+  document.getElementById('cx-prioridade').value='12';
+  document.getElementById('cx-assignee').value='9';
+  document.getElementById('cx-portal').value='';
+  document.getElementById('btn-enviar-cx').disabled=false;
+  document.getElementById('btn-enviar-cx').textContent='Abrir Chamado';
+  removerArquivo('cx');
+}
+</script>
+</body>
+</html>
