@@ -171,30 +171,13 @@
       <div>
         <label class="required">Categoria</label>
         <select id="f-categoria">
-          <option value="1">Feature</option>
-          <option value="2" selected>Bug</option>
-          <option value="3">Migrations</option>
-          <option value="4">Documentation</option>
-        </select>
-      </div>
-      <div>
-        <label class="required">Tipo</label>
-        <select id="f-ticket-type">
-          <option value="bug">Bug</option>
-          <option value="feature">Feature</option>
-          <option value="improvement">Melhoria</option>
-          <option value="support">Suporte</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row2">
-      <div>
-        <label class="required">Issue type</label>
-        <select id="f-issue-type">
-          <option value="impedimento">Impedimento</option>
-          <option value="duvida">Dúvida</option>
-          <option value="melhoria">Melhoria</option>
+          <option value="Internet">Internet</option>
+          <option value="Troca de Pilha">Troca de Pilha</option>
+          <option value="Periféricos">Periféricos (Mouse, headset, etc)</option>
+          <option value="Criação de acessos">Criação de acessos para novo colaborador</option>
+          <option value="Instalação de softwares">Instalação de softwares</option>
+          <option value="Impressora">Impressora</option>
+          <option value="Outros" selected>Outros</option>
         </select>
       </div>
       <div>
@@ -526,10 +509,13 @@ async function enviar(){
   const email      = document.getElementById('f-email').value.trim();
   const nome       = document.getElementById('f-nome').value.trim();
 
+  const categoria = document.getElementById('f-categoria').value;
+
   let desc = `<p>${document.getElementById('f-descricao').value.trim()}</p>`;
   if(nome)       desc += `<p><strong>Solicitante:</strong> ${nome}</p>`;
   if(email)      desc += `<p><strong>E-mail:</strong> ${email}</p>`;
   if(patrimonio) desc += `<p><strong>Patrimônio:</strong> ${patrimonio}</p>`;
+  desc += `<p><strong>Categoria:</strong> ${categoria}</p>`;
 
   const links = [];
   const arquivo = document.getElementById('f-arquivo').files[0];
@@ -540,11 +526,9 @@ async function enviar(){
       title:               document.getElementById('f-titulo').value.trim(),
       description:         desc,
       priority:            prio.api,
-      ticket_type:         document.getElementById('f-ticket-type').value,
-      issue_type:          document.getElementById('f-issue-type').value,
       requester_area_id:   1,
       assignee_area_id:    1,
-      ticket_category_id:  parseInt(document.getElementById('f-categoria').value),
+      ticket_category_id:  2,
       start_date:          _hoje(),
       due_date:            _prazo(prio.horas),
       ...(links.length ? { ticket_links_attributes: links } : {}),
@@ -634,9 +618,7 @@ function novoForm(){
     const el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('f-prioridade').value='medio';
-  document.getElementById('f-categoria').value='2';
-  document.getElementById('f-ticket-type').value='bug';
-  document.getElementById('f-issue-type').value='impedimento';
+  document.getElementById('f-categoria').value='Outros';
   document.getElementById('btn-enviar-infra').disabled=false;
   document.getElementById('btn-enviar-infra').textContent='Abrir Chamado';
   removerArquivo('infra');
