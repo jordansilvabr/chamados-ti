@@ -300,8 +300,8 @@
     </div>
 
     <div>
-      <label>Link do portal ou conta</label>
-      <input id="cx-cliente-link" type="url" placeholder="https://..." maxlength="500">
+      <label>Links relacionados <span style="color:#94a3b8;font-weight:400">(um por linha)</span></label>
+      <textarea id="cx-links-topo" style="min-height:70px" placeholder="https://link1.com&#10;https://link2.com"></textarea>
     </div>
 
     <!-- Detalhamento -->
@@ -335,10 +335,6 @@
       </div>
     </div>
 
-    <div>
-      <label>Links relacionados <span style="color:#94a3b8;font-weight:400">(um por linha)</span></label>
-      <textarea id="cx-links" style="min-height:70px" placeholder="https://link1.com&#10;https://link2.com"></textarea>
-    </div>
 
     <button class="btn" onclick="enviarCX()" id="btn-enviar-cx">Abrir Chamado</button>
   </div>
@@ -558,17 +554,19 @@ async function enviarCX(){
 
   const clienteNome = document.getElementById('cx-cliente-nome').value.trim();
   const clienteDoc  = document.getElementById('cx-documento').value.trim();
-  const clienteLink = document.getElementById('cx-cliente-link').value.trim();
   const portal      = document.getElementById('cx-portal').value;
-  const linksRel    = document.getElementById('cx-links').value.trim();
+  const linksRel    = document.getElementById('cx-links-topo').value.trim();
   const nome        = document.getElementById('cx-responsavel').value.trim();
+
+  const _PRIO_CX = { '9':{api:'critical'}, '10':{api:'high'}, '12':{api:'medium'}, '11':{api:'low'} };
+  const prioCxKey = document.getElementById('cx-prioridade').value;
+  const prioCx = _PRIO_CX[prioCxKey] || { api:'medium' };
 
   let desc = `<p>${document.getElementById('cx-descricao').value.trim()}</p>`;
   if(nome)        desc += `<p><strong>Solicitante:</strong> ${nome}</p>`;
   if(clienteNome) desc += `<p><strong>Cliente/Premiado:</strong> ${clienteNome}</p>`;
   if(clienteDoc)  desc += `<p><strong>CPF/CNPJ:</strong> ${clienteDoc}</p>`;
   if(portal)      desc += `<p><strong>Portal:</strong> ${portal}</p>`;
-  if(clienteLink) desc += `<p><strong>Link do portal:</strong> ${clienteLink}</p>`;
 
   const links = [];
   if(linksRel){
@@ -581,6 +579,7 @@ async function enviarCX(){
     ticket: {
       title:              document.getElementById('cx-titulo').value.trim(),
       description:        desc,
+      priority:           prioCx.api,
       requester_area_id:  6,
       assignee_area_id:   6,
       ticket_category_id: parseInt(document.getElementById('cx-prioridade').value),
@@ -623,7 +622,7 @@ function novoForm(){
   removerArquivo('infra');
   atualizarPrio();
   // Reset CX
-  ['cx-responsavel','cx-titulo','cx-descricao','cx-cliente-nome','cx-documento','cx-cliente-link','cx-links'].forEach(id=>{
+  ['cx-responsavel','cx-titulo','cx-descricao','cx-cliente-nome','cx-documento','cx-links-topo'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.value='';
   });
   document.getElementById('cx-area').value='8';
