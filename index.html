@@ -358,7 +358,7 @@
 
 <script>
 // ── Config API externa ──
-const _API_URL   = 'http://miky2mzxx76sx318uf091u9s.34.95.230.116.sslip.io/v1/tickets';
+const _API_URL   = 'http://miky2mzxx76sx318uf091u9s.34.95.230.116.sslip.io/api/v1/tickets';
 const _API_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkOTg3ODNhYS1hZDVkLTQ4N2MtOWFkMi01M2U5YTMzNWM1MTMiLCJleHAiOjE3ODI4NDc2ODJ9.6s4O9GlqBdZSRthO5QGNBegb1iqjU1ozMJSwNpMcLYE';
 
 function _hoje(){ return new Date().toISOString().split('T')[0]; }
@@ -584,10 +584,10 @@ async function enviarCX(){
       description:        desc,
       requester_area_id:  6,
       assignee_area_id:   6,
-      ticket_category_id: parseInt(document.getElementById('cx-area').value),
+      ticket_category_id: parseInt(document.getElementById('cx-prioridade').value),
       start_date:         _hoje(),
       due_date:           _prazo(24),
-      ticket_label_ids:   [parseInt(document.getElementById('cx-prioridade').value)],
+      ticket_label_ids:   [parseInt(document.getElementById('cx-area').value)],
       ...(links.length ? { ticket_links_attributes: links } : {}),
     }
   };
