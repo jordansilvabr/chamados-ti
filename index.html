@@ -485,12 +485,11 @@ async function _uploadAnexo(ticketId, inputId){
   const signedId = upData.signed_id;
   if(!signedId) return;
 
-  // Passo 2: anexar ao ticket via comentário
-  const baseUrl = _API_URL.replace('/tickets', '');
-  await fetch(`${baseUrl}/tickets/${ticketId}/comments`, {
-    method: 'POST',
+  // Passo 2: anexar ao ticket via PATCH (aparece na aba Anexos do backoffice)
+  await fetch(`${_API_URL}/${ticketId}`, {
+    method: 'PATCH',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ticket_comment: { content: 'Arquivo anexado.', internal: false, attachment_signed_ids: [signedId] } })
+    body: JSON.stringify({ ticket: { attachment_signed_ids: [signedId] } })
   });
 }
 
