@@ -513,8 +513,6 @@ async function enviar(){
   desc += `<p><strong>Categoria:</strong> ${categoria}</p>`;
 
   const links = [];
-  const arquivo = document.getElementById('f-arquivo').files[0];
-  if(arquivo) links.push({ name: arquivo.name, url: '', position: 0 });
 
   const payload = {
     ticket: {
