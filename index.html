@@ -213,17 +213,15 @@
     </div>
 
     <div>
-      <label>Anexar arquivo <span style="color:#94a3b8;font-weight:400">(imagem ou PDF, máx. 10 MB)</span></label>
+      <label>Anexar arquivos <span style="color:#94a3b8;font-weight:400">(imagens ou PDF, máx. 10 MB cada)</span></label>
       <div class="dz" id="dz-infra" onclick="document.getElementById('f-arquivo').click()">
         <div class="dz-icon">📎</div>
-        <div id="dz-infra-label">Clique ou arraste um arquivo aqui</div>
-        <div style="font-size:11px;margin-top:3px;color:#94a3b8">PNG, JPG, WEBP ou PDF</div>
+        <div id="dz-infra-label">Clique ou arraste arquivos aqui</div>
+        <div style="font-size:11px;margin-top:3px;color:#94a3b8">PNG, JPG, WEBP ou PDF — múltiplos arquivos permitidos</div>
       </div>
-      <input id="f-arquivo" type="file" accept="image/*,.pdf" style="display:none" onchange="onArquivoSelecionado('infra')">
-      <div id="preview-wrap-infra" style="display:none;margin-top:10px;position:relative">
-        <img id="preview-img-infra" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid #e2e8f0;display:none">
-        <div id="preview-pdf-infra" style="display:none;background:#f1f5f9;border-radius:6px;padding:10px 14px;font-size:13px;color:#374151;border:1px solid #e2e8f0"></div>
-        <button onclick="removerArquivo('infra')" style="position:absolute;top:6px;right:6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+      <input id="f-arquivo" type="file" accept="image/*,.pdf" multiple style="display:none" onchange="onArquivoSelecionado('infra')">
+      <div id="preview-wrap-infra" style="display:none;margin-top:10px">
+        <div id="preview-list-infra" style="display:flex;flex-direction:column;gap:6px"></div>
       </div>
     </div>
 
@@ -321,17 +319,15 @@
     </div>
 
     <div>
-      <label>Arquivos <span style="color:#94a3b8;font-weight:400">(fotos, prints, vídeos — máx. 10 MB)</span></label>
+      <label>Arquivos <span style="color:#94a3b8;font-weight:400">(fotos, prints, vídeos — máx. 10 MB cada)</span></label>
       <div class="dz" id="dz-cx" onclick="document.getElementById('cx-arquivo').click()">
         <div class="dz-icon">📎</div>
         <div id="dz-cx-label">Clique ou arraste arquivos aqui</div>
-        <div style="font-size:11px;margin-top:3px;color:#94a3b8">PNG, JPG, WEBP, PDF, MP4, MOV</div>
+        <div style="font-size:11px;margin-top:3px;color:#94a3b8">PNG, JPG, WEBP, PDF, MP4, MOV — múltiplos arquivos permitidos</div>
       </div>
-      <input id="cx-arquivo" type="file" accept="image/*,.pdf,video/*" style="display:none" onchange="onArquivoSelecionado('cx')">
-      <div id="preview-wrap-cx" style="display:none;margin-top:10px;position:relative">
-        <img id="preview-img-cx" style="max-width:100%;max-height:180px;border-radius:6px;border:1px solid #e2e8f0;display:none">
-        <div id="preview-pdf-cx" style="display:none;background:#f1f5f9;border-radius:6px;padding:10px 14px;font-size:13px;color:#374151;border:1px solid #e2e8f0"></div>
-        <button onclick="removerArquivo('cx')" style="position:absolute;top:6px;right:6px;background:#ef4444;color:#fff;border:none;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center">✕</button>
+      <input id="cx-arquivo" type="file" accept="image/*,.pdf,video/*" multiple style="display:none" onchange="onArquivoSelecionado('cx')">
+      <div id="preview-wrap-cx" style="display:none;margin-top:10px">
+        <div id="preview-list-cx" style="display:flex;flex-direction:column;gap:6px"></div>
       </div>
     </div>
 
@@ -430,8 +426,7 @@ function _setupDZ(dzId, inputId, ctx){
   dz.addEventListener('dragleave', ()=> dz.classList.remove('over'));
   dz.addEventListener('drop', e=>{
     e.preventDefault(); dz.classList.remove('over');
-    const f = e.dataTransfer.files[0];
-    if(f){ document.getElementById(inputId).files = e.dataTransfer.files; onArquivoSelecionado(ctx); }
+    if(e.dataTransfer.files.length){ document.getElementById(inputId).files = e.dataTransfer.files; onArquivoSelecionado(ctx); }
   });
 }
 _setupDZ('dz-infra','f-arquivo','infra');
@@ -439,57 +434,86 @@ _setupDZ('dz-cx','cx-arquivo','cx');
 
 function onArquivoSelecionado(ctx){
   const inputId = ctx==='infra' ? 'f-arquivo' : 'cx-arquivo';
-  const labelId = 'dz-'+ctx+'-label';
-  const wrapId  = 'preview-wrap-'+ctx;
-  const imgId   = 'preview-img-'+ctx;
-  const pdfId   = 'preview-pdf-'+ctx;
+  const files = Array.from(document.getElementById(inputId).files);
+  if(!files.length) return;
 
-  const f = document.getElementById(inputId).files[0];
-  if(!f) return;
+  const list = document.getElementById('preview-list-'+ctx);
+  list.innerHTML = '';
+  document.getElementById('preview-wrap-'+ctx).style.display = 'block';
   document.getElementById('dz-'+ctx).querySelector('.dz-icon').textContent = '✅';
-  document.getElementById(labelId).textContent = f.name;
-  document.getElementById(wrapId).style.display = 'block';
-  const img = document.getElementById(imgId);
-  const pdf = document.getElementById(pdfId);
-  if(f.type.startsWith('image/')){
-    img.style.display='block'; pdf.style.display='none';
-    img.src = URL.createObjectURL(f);
-  } else {
-    img.style.display='none'; pdf.style.display='block';
-    pdf.textContent = '📄 ' + f.name + ' (' + (f.size/1024).toFixed(0) + ' KB)';
-  }
+  document.getElementById('dz-'+ctx+'-label').textContent = files.length + ' arquivo(s) selecionado(s)';
+
+  files.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.style.cssText = 'display:flex;align-items:center;gap:8px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;font-size:13px;color:#374151';
+    if(f.type.startsWith('image/')){
+      const img = document.createElement('img');
+      img.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #e2e8f0';
+      img.src = URL.createObjectURL(f);
+      item.appendChild(img);
+    } else {
+      const icon = document.createElement('span');
+      icon.textContent = '📄';
+      icon.style.fontSize = '20px';
+      item.appendChild(icon);
+    }
+    const name = document.createElement('span');
+    name.style.flex = '1';
+    name.textContent = f.name + ' (' + (f.size/1024).toFixed(0) + ' KB)';
+    item.appendChild(name);
+    const btn = document.createElement('button');
+    btn.textContent = '✕';
+    btn.style.cssText = 'background:#ef4444;color:#fff;border:none;border-radius:50%;width:20px;height:20px;cursor:pointer;font-size:11px;flex-shrink:0';
+    btn.onclick = () => removerArquivoItem(ctx, i);
+    item.appendChild(btn);
+    list.appendChild(item);
+  });
+}
+
+function removerArquivoItem(ctx, idx){
+  const inputId = ctx==='infra' ? 'f-arquivo' : 'cx-arquivo';
+  const input = document.getElementById(inputId);
+  const dt = new DataTransfer();
+  Array.from(input.files).forEach((f, i) => { if(i !== idx) dt.items.add(f); });
+  input.files = dt.files;
+  onArquivoSelecionado(ctx);
+  if(!input.files.length) removerArquivo(ctx);
 }
 
 function removerArquivo(ctx){
   const inputId = ctx==='infra' ? 'f-arquivo' : 'cx-arquivo';
   document.getElementById(inputId).value = '';
   document.getElementById('preview-wrap-'+ctx).style.display='none';
-  document.getElementById('preview-img-'+ctx).src='';
+  document.getElementById('preview-list-'+ctx).innerHTML='';
   document.getElementById('dz-'+ctx).querySelector('.dz-icon').textContent='📎';
-  document.getElementById('dz-'+ctx+'-label').textContent='Clique ou arraste um arquivo aqui';
+  document.getElementById('dz-'+ctx+'-label').textContent='Clique ou arraste arquivos aqui';
 }
 
-// ── Upload de anexo (2 passos: upload → comentário) ──
+// ── Upload de anexos (múltiplos: upload cada → PATCH com todos os signed_ids) ──
 async function _uploadAnexo(ticketId, inputId){
   const input = document.getElementById(inputId);
   if(!input || !input.files.length) return;
-  const file = input.files[0];
   const headers = { 'Authorization': 'Bearer ' + _API_TOKEN };
+  const uploadUrl = _API_URL.replace(/\/tickets$/, '/uploads');
 
-  // Passo 1: subir o arquivo
-  const fd = new FormData();
-  fd.append('file', file);
-  const upRes = await fetch(_API_URL.replace(/\/tickets$/, '/uploads'), { method:'POST', headers, body: fd });
-  if(!upRes.ok) return;
-  const upData = await upRes.json();
-  const signedId = upData.signed_id;
-  if(!signedId) return;
+  // Passo 1: subir todos os arquivos em paralelo
+  const uploads = await Promise.all(Array.from(input.files).map(async file => {
+    const fd = new FormData();
+    fd.append('file', file);
+    const res = await fetch(uploadUrl, { method:'POST', headers, body: fd });
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.signed_id || null;
+  }));
 
-  // Passo 2: anexar ao ticket via PATCH (aparece na aba Anexos do backoffice)
+  const signedIds = uploads.filter(Boolean);
+  if(!signedIds.length) return;
+
+  // Passo 2: anexar todos ao ticket via PATCH
   await fetch(`${_API_URL}/${ticketId}`, {
     method: 'PATCH',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ticket: { attachment_signed_ids: [signedId] } })
+    body: JSON.stringify({ ticket: { attachment_signed_ids: signedIds } })
   });
 }
 
