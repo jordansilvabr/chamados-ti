@@ -469,13 +469,29 @@ function removerArquivo(ctx){
   document.getElementById('dz-'+ctx+'-label').textContent='Clique ou arraste um arquivo aqui';
 }
 
-// ── Upload de anexo ──
-async function _uploadAnexo(chamadoId, inputId){
+// ── Upload de anexo (2 passos: upload → comentário) ──
+async function _uploadAnexo(ticketId, inputId){
   const input = document.getElementById(inputId);
-  if(!input.files.length) return;
+  if(!input || !input.files.length) return;
+  const file = input.files[0];
+  const headers = { 'Authorization': 'Bearer ' + _API_TOKEN };
+
+  // Passo 1: subir o arquivo
   const fd = new FormData();
-  fd.append('arquivo', input.files[0]);
-  await fetch('/api/chamados/'+chamadoId+'/anexos', {method:'POST', body:fd});
+  fd.append('file', file);
+  const upRes = await fetch(_API_URL.replace('/tickets', '/uploads'), { method:'POST', headers, body: fd });
+  if(!upRes.ok) return;
+  const upData = await upRes.json();
+  const signedId = upData.signed_id;
+  if(!signedId) return;
+
+  // Passo 2: anexar ao ticket via comentário
+  const baseUrl = _API_URL.replace('/tickets', '');
+  await fetch(`${baseUrl}/tickets/${ticketId}/comments`, {
+    method: 'POST',
+    headers: { ...headers, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ticket_comment: { content: '<p>Arquivo anexado.</p>', attachment_signed_ids: [signedId] } })
+  });
 }
 
 // ── Mostrar sucesso ──
@@ -537,6 +553,7 @@ async function enviar(){
     if(!res.ok){ const t=await res.text(); throw new Error(t); }
     const data = await res.json();
     const ticketId = data.ticket?.id || data.id || '—';
+    await _uploadAnexo(ticketId, 'f-arquivo');
     _mostrarSucesso(ticketId, null);
   } catch(e){
     alert('Erro ao enviar: ' + e.message);
@@ -597,6 +614,7 @@ async function enviarCX(){
     if(!res.ok){ const t=await res.text(); throw new Error(t); }
     const data = await res.json();
     const ticketId = data.ticket?.id || data.id || '—';
+    await _uploadAnexo(ticketId, 'cx-arquivo');
     _mostrarSucesso(ticketId, null);
   } catch(e){
     alert('Erro ao enviar: ' + e.message);
