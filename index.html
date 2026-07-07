@@ -490,7 +490,7 @@ async function _uploadAnexo(ticketId, inputId){
   await fetch(`${baseUrl}/tickets/${ticketId}/comments`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ticket_comment: { content: '<p>Arquivo anexado.</p>', attachment_signed_ids: [signedId] } })
+    body: JSON.stringify({ ticket_comment: { content: 'Arquivo anexado.', internal: false, attachment_signed_ids: [signedId] } })
   });
 }
 
