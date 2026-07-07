@@ -479,7 +479,7 @@ async function _uploadAnexo(ticketId, inputId){
   // Passo 1: subir o arquivo
   const fd = new FormData();
   fd.append('file', file);
-  const upRes = await fetch(_API_URL.replace('/tickets', '/uploads'), { method:'POST', headers, body: fd });
+  const upRes = await fetch(_API_URL.replace(/\/tickets$/, '/uploads'), { method:'POST', headers, body: fd });
   if(!upRes.ok) return;
   const upData = await upRes.json();
   const signedId = upData.signed_id;
