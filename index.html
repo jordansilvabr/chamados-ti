@@ -627,7 +627,7 @@ async function enviarCX(){
       ticket_category_id: parseInt(document.getElementById('cx-prioridade').value),
       start_date:         _hoje(),
       due_date:           _prazo(24),
-      ticket_label_ids:   [areaVal],
+      ...(areaId === 6 ? { ticket_label_ids: [areaVal] } : {}),
       ...(links.length ? { ticket_links_attributes: links } : {}),
     }
   };
