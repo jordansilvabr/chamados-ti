@@ -613,17 +613,21 @@ async function enviarCX(){
     });
   }
 
+  const areaVal = parseInt(document.getElementById('cx-area').value);
+  const areaId  = areaVal === 10 ? 8 : 6; // Financeiro → area 8, CX → area 6
+
   const payload = {
     ticket: {
       title:              document.getElementById('cx-titulo').value.trim(),
       description:        desc,
       priority:           prioCx.api,
-      requester_area_id:  6,
-      assignee_area_id:   6,
+      requester_area_id:  areaId,
+      assignee_area_id:   areaId,
+      area_id:            areaId,
       ticket_category_id: parseInt(document.getElementById('cx-prioridade').value),
       start_date:         _hoje(),
       due_date:           _prazo(24),
-      ticket_label_ids:   [parseInt(document.getElementById('cx-area').value)],
+      ticket_label_ids:   [areaVal],
       ...(links.length ? { ticket_links_attributes: links } : {}),
     }
   };
