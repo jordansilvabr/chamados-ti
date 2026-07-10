@@ -539,6 +539,7 @@ async function enviar(){
       ticket_category_id:  2,
       start_date:          _hoje(),
       due_date:            _prazo(prio.horas),
+      ...(email ? { requester_email: email } : {}),
       ...(links.length ? { ticket_links_attributes: links } : {}),
     }
   };
