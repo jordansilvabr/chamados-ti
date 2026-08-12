@@ -356,9 +356,12 @@
 const _API_URL   = 'https://tickets.stg.blueoffice.tech/api/v1/tickets';
 const _API_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkYWY4MWEyMi04YzY5LTRmMTUtYjlkMS05ZjZkZTdhM2NkNTUifQ.tv7SI3ivyBZGSTIO6G-h0WI-XCiUgn42J3r_YGzQJvY';
 
-function _hoje(){ return new Date().toISOString().split('T')[0]; }
+function _localISODate(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function _hoje(){ return _localISODate(new Date()); }
 function _prazo(horas){
-  return new Date(Date.now() + horas*3600000).toISOString().split('T')[0];
+  return _localISODate(new Date(Date.now() + horas*3600000));
 }
 
 // ── Setor ──
